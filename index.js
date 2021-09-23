@@ -7,7 +7,8 @@ const options = {
     maxClusterZoom: 18,
     clusterMarkerSymbol: null,
     markerEvents: {},
-    clusterDispersion: false
+    clusterDispersion: false,
+    dispersionCount: 100
 };
 
 function bboxToPolygon(bbox) {
@@ -116,6 +117,12 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         if (!map) {
             return this;
         }
+        const dispersionMarkers = this.getGeometries().filter(p => {
+            return p._isDispersion;
+        });
+        if (dispersionMarkers) {
+            this.removeGeometry(dispersionMarkers);
+        }
         const extent = map.getExtent();
         if (extent.xmin > extent.xmax) {
             extent.xmax = 178;
@@ -213,7 +220,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
     _bindMarkersEvents(markers = []) {
         markers.forEach(marker => {
             const properties = marker.getProperties() || {};
-            if (properties.isCluster && properties.features && properties.features.length < 100) {
+            if (properties.isCluster && properties.features && properties.features.length <= this.options.dispersionCount) {
                 marker.on('mouseover mouseout', this._clusterDispersion, this);
             }
             for (const eventName in this.options.markerEvents) {
@@ -233,18 +240,30 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             const features = properties.features || [];
             if (features.length) {
                 clusterMarker._children = features.map(f => {
-                    return new maptalks.Marker(f.geometry.coordinate, {
+                    const marker = new maptalks.Marker(f.geometry.coordinates, {
                         symbol: f.symbol,
-                        properties: f.properties
+                        properties: f.properties,
+                        zIndex: Infinity
                     });
+                    marker.setZIndex(Infinity);
+                    marker._isDispersion = true;
+                    return marker;
                 });
             }
         }
         if (e.type === 'mouseover' && clusterMarker._children && clusterMarker._children.length) {
-            this.addGeometry(clusterMarker._children);
+            const children = clusterMarker._children.filter(p => {
+                return !p.getLayer();
+            });
+
+            if (children.length) {
+                this.addGeometry(children);
+            }
         }
         if (e.type === 'mouseout' && clusterMarker._children && clusterMarker._children.length) {
-            this.removeGeometry(clusterMarker._children);
+            this.removeGeometry(clusterMarker._children.filter(p => {
+                return p.getLayer();
+            }));
         }
     }
 
