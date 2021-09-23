@@ -997,6 +997,8 @@ function getDefaultClusterMarkerSymbol(count) {
     };
 }
 
+const XMAX = 178, YMAX = 85;
+
 class TileClusterLayer extends VectorLayer {
 
     constructor(id, options) {
@@ -1069,14 +1071,16 @@ class TileClusterLayer extends VectorLayer {
         }
         const extent = map.getExtent();
         if (extent.xmin > extent.xmax) {
-            extent.xmax = 178;
-            // extent.xmin = -180;
-            // extent.xmax = 180;
-            // extent.ymin = -85;
-            // extent.ymax = 85;
+            extent.xmax = XMAX;
         }
         if (extent.ymin > extent.ymax) {
-            extent.ymax = 85;
+            extent.ymax = YMAX;
+        }
+        if (map.getScale() >= 32768) {
+            extent.ymin = -YMAX;
+            extent.ymax = YMAX;
+            extent.xmax = XMAX;
+            extent.xmin = -XMAX;
         }
         const polygon = bboxToPolygon(extent);
         const zoom = Math.round(map.getZoom());
