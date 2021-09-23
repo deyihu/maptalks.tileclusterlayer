@@ -6,7 +6,8 @@ import TileCover from '@mapbox/tile-cover';
 const options = {
     maxClusterZoom: 18,
     clusterMarkerSymbol: null,
-    markerEvents: {}
+    markerEvents: {},
+    clusterDispersion: false
 };
 
 function bboxToPolygon(bbox) {
@@ -211,11 +212,40 @@ export class TileClusterLayer extends maptalks.VectorLayer {
 
     _bindMarkersEvents(markers = []) {
         markers.forEach(marker => {
+            const properties = marker.getProperties() || {};
+            if (properties.isCluster && properties.features && properties.features.length < 100) {
+                marker.on('mouseover mouseout', this._clusterDispersion, this);
+            }
             for (const eventName in this.options.markerEvents) {
                 marker.on(eventName, this.options.markerEvents[eventName]);
             }
         });
         return this;
+    }
+
+    _clusterDispersion(e) {
+        if (!this.options.clusterDispersion) {
+            return this;
+        }
+        const clusterMarker = e.target;
+        if (!clusterMarker._children) {
+            const properties = clusterMarker.getProperties() || {};
+            const features = properties.features || [];
+            if (features.length) {
+                clusterMarker._children = features.map(f => {
+                    return new maptalks.Marker(f.geometry.coordinate, {
+                        symbol: f.symbol,
+                        properties: f.properties
+                    });
+                });
+            }
+        }
+        if (e.type === 'mouseover' && clusterMarker._children && clusterMarker._children.length) {
+            this.addGeometry(clusterMarker._children);
+        }
+        if (e.type === 'mouseout' && clusterMarker._children && clusterMarker._children.length) {
+            this.removeGeometry(clusterMarker._children);
+        }
     }
 
     _getClusterMarker(coordinate, count, features) {
