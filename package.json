@@ -2,7 +2,9 @@
   "name": "maptalks.tileclusterlayer",
   "version": "0.0.1",
   "description": "marker cluster by tile",
-  "main": "index.js",
+  "module": "dist/maptalks.tileclusterlayer.es.js",
+  "main": "dist/maptalks.tileclusterlayer.js",
+  "jsnext:main": "dist/maptalks.tileclusterlayer.es.js",
   "scripts": {
     "lint": "eslint ./*.js",
     "build": "npm run lint && cross-env NODE_ENV=dev  rollup -c",
@@ -17,12 +19,15 @@
     "cluster",
     "markers"
   ],
-  "author": "",
+  "author": "deyihu",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/deyihu/maptalks.tileclusterlayer/issues"
   },
   "homepage": "https://github.com/deyihu/maptalks.tileclusterlayer#readme",
+  "files": [
+    "dist/"
+  ],
   "dependencies": {
     "@mapbox/sphericalmercator": "^1.2.0",
     "@mapbox/tile-cover": "^3.0.2",
