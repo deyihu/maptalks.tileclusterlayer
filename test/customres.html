@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map - Display a map</title>
+<style type="text/css">
+    html,
+    body {
+        margin: 0px;
+        height: 100%;
+        width: 100%
+    }
+
+    .container {
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
+<script type="text/javascript" src="./../dist/maptalks.tileclusterlayer.js"></script>
+<script type="text/javascript" src="http://58.211.183.162:8941/yymap-examples-static/data/gsAreaPoi.js"></script>
+
+<body>
+
+    <div id="map" class="container"></div>
+
+    <script>
+        const res = [];
+        for (let i = 0; i <= 12; i++) {
+            res.push(7.61427507662348E-04 / Math.pow(2, i));
+        }
+
+        const map = new maptalks.Map('map', {
+            seamlessZoom: false,
+            zoomControl: true,
+            centerCross: true,
+            // bearing:-90,
+            center: [120.34, 31.309622415877158],
+            // pitch:40,
+            // overviewControl:true,
+            spatialReference: {
+                projection: 'EPSG:4326', // geo projection, can be a string or a function
+                resolutions: res,
+            },
+            zoom: 0
+            // minZoom:4
+        });
+
+        const url = 'http://58.210.98.62:7080/Layers20160414/Layers/_alllayers/';
+
+        function pad(num, len) {
+            let count = num.length;
+            while (count < len) {
+                num = '0' + num;
+                count++;
+            }
+            return num;
+        }
+
+
+
+        const tileLayer = new maptalks.TileLayer('hello', {
+            debug: true,
+            urlTemplate: url,
+            // repeatWorld: false,
+            tileSystem: [1, -1, -400, 400],
+            spatialReference: {
+                projection: 'EPSG:4326', // geo projection, can be a string or a function
+                resolutions: res,
+
+            }
+        });
+
+        tileLayer.getTileUrl = function (x, y, z) {
+            const row = y.toString(16);
+            const col = x.toString(16);
+            const lev = z.toString();
+
+            const sub = '/{lev}/{row}/{col}'
+                .replace('{lev}', 'L' + pad(lev, 2))
+                .replace('{row}', 'R' + pad(row, 8))
+                .replace('{col}', 'C' + pad(col, 8));
+
+            return this.options.urlTemplate + sub + ".png";
+        }
+
+
+        map.setBaseLayer(tileLayer);
+
+
+        function getClusterMarkerSymbol(count) {
+            const symbol = {
+                markerType: 'ellipse',
+                markerWidth: 65,
+                markerHeight: 65,
+                markerFill: '#fff',
+                markerLineWidth: 0,
+                markerFillOpacity: 1,
+                markerOpacity: 1,
+                textSize: 15,
+                textName: count,
+                textHaloFill: '#000',
+                textHaloRadius: 1.2,
+                textFill: '#fff'
+            };
+            if (count > 5000) {
+                symbol.markerFill = 'red';
+            } else if (count > 1000) {
+                symbol.markerFill = 'yellow';
+            };
+            return symbol;
+        }
+
+        const tileClusterLayer = new maptalks.TileClusterLayer('layer', {
+            maxClusterZoom: 7,
+            clusterDispersion: true,
+            dispersionCount: 500,
+            // clusterMarkerSymbol: getClusterMarkerSymbol,
+            markerEvents: {
+                'click': function (e) {
+                    console.log(e);
+                }
+            }
+        });
+        tileClusterLayer.addTo(map);
+
+        var geojson = {
+            type: 'FeatureCollection',
+            features: gsAreaPoi.data.map(d => {
+                return {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [d.lng, d.lat]
+                    }
+                }
+            })
+        }
+        geojson.features.forEach(f => {
+            f.symbol = {
+                markerType: 'ellipse',
+                markerWidth: 15,
+                markerHeight: 15,
+                markerFill: 'blue',
+                markerLineWidth: 1,
+                markerFillOpacity: 1,
+                markerOpacity: 1,
+            }
+        });
+        tileClusterLayer.setData(geojson);
+
+        // fetch('./test.geojson').then(res => res.json()).then(json => {
+        //     json.features.forEach(f => {
+        //         f.symbol = {
+        //             markerType: 'ellipse',
+        //             markerWidth: 15,
+        //             markerHeight: 15,
+        //             markerFill: '#fff',
+        //             markerLineWidth: 1,
+        //             markerFillOpacity: 1,
+        //             markerOpacity: 1,
+        //         }
+        //     });
+        //     tileClusterLayer.setData(json);
+        // })
+
+    </script>
+</body>
+
+</html>
