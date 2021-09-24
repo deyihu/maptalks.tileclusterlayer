@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.1
+ * maptalks.tileclusterlayer v0.0.2
   */
 import { VectorLayer, Marker, Util } from 'maptalks';
 
@@ -986,7 +986,7 @@ function getDefaultClusterMarkerSymbol(count) {
         markerWidth: 65,
         markerHeight: 65,
         markerFill,
-        markerLineWidth: 0,
+        markerLineWidth: 1,
         markerFillOpacity: 1,
         markerOpacity: 1,
         textSize: 15,
@@ -997,7 +997,37 @@ function getDefaultClusterMarkerSymbol(count) {
     };
 }
 
-const XMAX = 178, YMAX = 85;
+const GLOBALSCALE = 32768, XMAX = 178, YMAX = 85, MAXZOOM = 31, SCALES = [];
+for (let i = 0; i < MAXZOOM; i++) {
+    SCALES.push(129202.08021 / Math.pow(2, i));
+}
+
+function getClosestZoom(scale) {
+    for (let i = 0; i < MAXZOOM - 1; i++) {
+        const s1 = SCALES[i], s2 = SCALES[i + 1];
+        if (s1 === scale) {
+            return i;
+        }
+        if (s2 === scale) {
+            return i + 1;
+        }
+        if (scale < s1 && s2 < scale) {
+            const d1 = Math.abs(scale - s1), d2 = Math.abs(scale - s2);
+            if (d1 <= d2) {
+                return i;
+            }
+            return i + 1;
+        }
+    }
+}
+
+function fixExtent(extent) {
+    const { xmin, ymin, xmax, ymax } = extent;
+    extent.xmin = Math.max(-XMAX, xmin);
+    extent.ymin = Math.max(-YMAX, ymin);
+    extent.xmax = Math.min(XMAX, xmax);
+    extent.ymax = Math.min(YMAX, ymax);
+}
 
 class TileClusterLayer extends VectorLayer {
 
@@ -1076,14 +1106,16 @@ class TileClusterLayer extends VectorLayer {
         if (extent.ymin > extent.ymax) {
             extent.ymax = YMAX;
         }
-        if (map.getScale() >= 32768) {
+        const scale = map.getScale();
+        if (scale >= GLOBALSCALE) {
             extent.ymin = -YMAX;
             extent.ymax = YMAX;
             extent.xmax = XMAX;
             extent.xmin = -XMAX;
         }
+        fixExtent(extent);
         const polygon = bboxToPolygon(extent);
-        const zoom = Math.round(map.getZoom());
+        const zoom = getClosestZoom(map.pixelToDistance(1, 0));
         const tiles$$1 = tileCover.tiles(polygon, {
             min_zoom: zoom,
             max_zoom: zoom
@@ -1097,7 +1129,10 @@ class TileClusterLayer extends VectorLayer {
         }
         const currentTileCache = this._currentTileCache, tileCache = this._tileCache, merc = this.merc, kdbush = this.kdbush;
         const cache = {};
-        tiles$$1.forEach(tile => {
+        const zoom = Math.floor(this.getMap().getZoom());
+        const addMarkers = [], removeMarkers = [];
+        for (let i = 0, len = tiles$$1.length; i < len; i++) {
+            const tile = tiles$$1[i];
             const [x, y, z] = tile;
             const key = [x, y, z].join('_').toString();
             cache[key] = 1;
@@ -1108,22 +1143,32 @@ class TileClusterLayer extends VectorLayer {
             if (!tileCache[key]) {
                 const bbox = merc.bbox(x, y, z);
                 const ids = kdbush.range(bbox[0], bbox[1], bbox[2], bbox[3]);
-                clusterResult = this._tileCluster(key, ids, z);
+                clusterResult = this._tileCluster(key, ids, zoom);
             } else {
                 clusterResult = tileCache[key];
             }
             if (!currentTileCache[key] && clusterResult.markers.length) {
-                this.addGeometry(clusterResult.markers);
+                clusterResult.markers.forEach(marker => {
+                    addMarkers.push(marker);
+                });
             }
             currentTileCache[key] = clusterResult;
-        });
+        }
         for (const key in currentTileCache) {
             if (!cache[key]) {
                 if (currentTileCache[key].markers.length) {
-                    this.removeGeometry(currentTileCache[key].markers);
+                    currentTileCache[key].markers.forEach(marker => {
+                        removeMarkers.push(marker);
+                    });
                 }
                 delete currentTileCache[key];
             }
+        }
+        if (addMarkers.length) {
+            this.addGeometry(addMarkers);
+        }
+        if (removeMarkers.length) {
+            this.removeGeometry(removeMarkers);
         }
     }
 
