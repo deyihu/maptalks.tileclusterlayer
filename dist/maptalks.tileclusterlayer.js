@@ -1167,9 +1167,13 @@
 	        const currentTileCache = this._currentTileCache, tileCache = this._tileCache, merc = this.merc, kdbush = this.kdbush;
 	        const cache = {};
 	        const zoom = Math.floor(this.getMap().getZoom());
+<<<<<<< HEAD
 	        const addMarkers = [], removeMarkers = [];
 	        for (let i = 0, len = tiles$$1.length; i < len; i++) {
 	            const tile = tiles$$1[i];
+=======
+	        tiles$$1.forEach(tile => {
+>>>>>>> 48dbd8222a54bc6c8c38f670c4a58233d422e275
 	            const [x, y, z] = tile;
 	            const key = [x, y, z].join('_').toString();
 	            cache[key] = 1;
