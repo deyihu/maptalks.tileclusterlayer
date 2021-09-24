@@ -1,8 +1,35 @@
 # maptalks.tileclusterlayer
 
-markers cluster by tile
+**markers cluster by tile**
 
 ## how to use?
+
+- by cdn
+
+```html
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css"
+/>
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"
+></script>
+<script
+  type="text/javascript"
+  src="https://cdn.jsdelivr.net/npm/maptalks.tileclusterlayer@latest/dist/maptalks.tileclusterlayer.min.js"
+></script>
+```
+
+- by npm
+
+```sh
+  npm i maptalks.tileclusterlayer
+#   or
+  yarn add maptalks.tileclusterlayer
+```
+
+- [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/ "demo online")
 
 ```js
 function getClusterMarkerSymbol(count) {
