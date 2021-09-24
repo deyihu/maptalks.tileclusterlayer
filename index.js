@@ -186,7 +186,9 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         const currentTileCache = this._currentTileCache, tileCache = this._tileCache, merc = this.merc, kdbush = this.kdbush;
         const cache = {};
         const zoom = Math.floor(this.getMap().getZoom());
-        tiles.forEach(tile => {
+        const addMarkers = [], removeMarkers = [];
+        for (let i = 0, len = tiles.length; i < len; i++) {
+            const tile = tiles[i];
             const [x, y, z] = tile;
             const key = [x, y, z].join('_').toString();
             cache[key] = 1;
@@ -202,17 +204,27 @@ export class TileClusterLayer extends maptalks.VectorLayer {
                 clusterResult = tileCache[key];
             }
             if (!currentTileCache[key] && clusterResult.markers.length) {
-                this.addGeometry(clusterResult.markers);
+                clusterResult.markers.forEach(marker => {
+                    addMarkers.push(marker);
+                });
             }
             currentTileCache[key] = clusterResult;
-        });
+        }
         for (const key in currentTileCache) {
             if (!cache[key]) {
                 if (currentTileCache[key].markers.length) {
-                    this.removeGeometry(currentTileCache[key].markers);
+                    currentTileCache[key].markers.forEach(marker => {
+                        removeMarkers.push(marker);
+                    });
                 }
                 delete currentTileCache[key];
             }
+        }
+        if (addMarkers.length) {
+            this.addGeometry(addMarkers);
+        }
+        if (removeMarkers.length) {
+            this.removeGeometry(removeMarkers);
         }
     }
 
