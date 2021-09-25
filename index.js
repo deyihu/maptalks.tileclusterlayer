@@ -108,6 +108,14 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         return this.globalPoints.length === 0;
     }
 
+    _init() {
+        this.clear();
+        this._tileCache = {};
+        this._currentTileCache = {};
+        this._viewChange();
+        return this;
+    }
+
     setData(geojson) {
         if (!this._isGeoJSON(geojson)) {
             console.error('data is not geojson');
@@ -117,10 +125,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         this.globalFeatures = features;
         this.globalPoints = points;
         this.kdbush = new KDBush(points);
-        this.clear();
-        this._tileCache = {};
-        this._currentTileCache = {};
-        this._viewChange();
+        this._init();
         return this;
     }
 
@@ -129,6 +134,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         const map = this.map || this.getMap();
         if (!map) return this;
         map.on('viewchange', this._viewChange, this);
+        map.on('spatialreferencechange', this._init, this);
         this._viewChange();
         return this;
     }
@@ -138,6 +144,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         const map = this.map || this.getMap();
         if (!map) return this;
         map.off('viewchange', this._viewChange, this);
+        map.off('spatialreferencechange', this._init, this);
         return this;
     }
 

@@ -42,6 +42,24 @@
             })
         });
 
+        const tdt = new maptalks.TileLayer('base', {
+            spatialReference: {
+                projection: 'EPSG:4326'
+            },
+            tileSystem: [1, -1, -180, 90],
+            urlTemplate: 'https://t{s}.tianditu.gov.cn/vec_c/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=vec&STYLE=default&TILEMATRIXSET=c&FORMAT=tiles&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}&tk=c4c9fdd838c580d7236bfdcb3a737321',
+            subdomains: ['1', '2', '3', '4', '5'],
+            attribution: '&copy; <a target="_blank" href="http://www.tianditu.cn">Tianditu</a>'
+        });
+
+        function switchBaseLayer() {
+            map.removeBaseLayer();
+            map.setSpatialReference({
+                projection: 'EPSG:4326'
+            });
+            map.setBaseLayer(tdt);
+        }
+
         function getClusterMarkerSymbol(count) {
             const symbol = {
                 markerType: 'ellipse',
