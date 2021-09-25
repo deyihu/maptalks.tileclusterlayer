@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.2
+ * maptalks.tileclusterlayer v0.0.3
   */
 import { VectorLayer, Marker, Util } from 'maptalks';
 
@@ -1052,6 +1052,14 @@ class TileClusterLayer extends VectorLayer {
         return this.globalPoints.length === 0;
     }
 
+    _init() {
+        this.clear();
+        this._tileCache = {};
+        this._currentTileCache = {};
+        this._viewChange();
+        return this;
+    }
+
     setData(geojson$$1) {
         if (!this._isGeoJSON(geojson$$1)) {
             console.error('data is not geojson');
@@ -1061,10 +1069,7 @@ class TileClusterLayer extends VectorLayer {
         this.globalFeatures = features;
         this.globalPoints = points;
         this.kdbush = new KDBush(points);
-        this.clear();
-        this._tileCache = {};
-        this._currentTileCache = {};
-        this._viewChange();
+        this._init();
         return this;
     }
 
@@ -1073,6 +1078,7 @@ class TileClusterLayer extends VectorLayer {
         const map = this.map || this.getMap();
         if (!map) return this;
         map.on('viewchange', this._viewChange, this);
+        map.on('spatialreferencechange', this._init, this);
         this._viewChange();
         return this;
     }
@@ -1082,6 +1088,7 @@ class TileClusterLayer extends VectorLayer {
         const map = this.map || this.getMap();
         if (!map) return this;
         map.off('viewchange', this._viewChange, this);
+        map.off('spatialreferencechange', this._init, this);
         return this;
     }
 

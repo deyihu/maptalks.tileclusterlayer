@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.2
+ * maptalks.tileclusterlayer v0.0.3
   */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('maptalks')) :
@@ -1089,6 +1089,14 @@
 	        return this.globalPoints.length === 0;
 	    }
 
+	    _init() {
+	        this.clear();
+	        this._tileCache = {};
+	        this._currentTileCache = {};
+	        this._viewChange();
+	        return this;
+	    }
+
 	    setData(geojson$$1) {
 	        if (!this._isGeoJSON(geojson$$1)) {
 	            console.error('data is not geojson');
@@ -1098,10 +1106,7 @@
 	        this.globalFeatures = features;
 	        this.globalPoints = points;
 	        this.kdbush = new KDBush(points);
-	        this.clear();
-	        this._tileCache = {};
-	        this._currentTileCache = {};
-	        this._viewChange();
+	        this._init();
 	        return this;
 	    }
 
@@ -1110,6 +1115,7 @@
 	        const map = this.map || this.getMap();
 	        if (!map) return this;
 	        map.on('viewchange', this._viewChange, this);
+	        map.on('spatialreferencechange', this._init, this);
 	        this._viewChange();
 	        return this;
 	    }
@@ -1119,6 +1125,7 @@
 	        const map = this.map || this.getMap();
 	        if (!map) return this;
 	        map.off('viewchange', this._viewChange, this);
+	        map.off('spatialreferencechange', this._init, this);
 	        return this;
 	    }
 
