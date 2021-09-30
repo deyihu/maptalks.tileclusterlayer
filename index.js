@@ -200,7 +200,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             const key = [x, y, z].join('_').toString();
             cache[key] = 1;
             if (currentTileCache[key]) {
-                return;
+                continue;
             }
             let clusterResult;
             if (!tileCache[key]) {
