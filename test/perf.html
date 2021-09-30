@@ -82,6 +82,7 @@
             type: 'FeatureCollection',
             features: []
         }
+        // data from https://l7.antv.vision/zh/examples/gallery
         d3.csv('https://gw.alipayobjects.com/os/rmsportal/BElVQFEFvpAKzddxFZxJ.txt', (error, response) => {
             for (let i = 0, len = response.length; i < len; i++) {
                 let lng = response[i].lng, lat = response[i].lat;
