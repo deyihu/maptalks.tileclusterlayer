@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.3
+ * maptalks.tileclusterlayer v0.0.4
   */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('maptalks')) :
@@ -1181,7 +1181,7 @@
 	            const key = [x, y, z].join('_').toString();
 	            cache[key] = 1;
 	            if (currentTileCache[key]) {
-	                return;
+	                continue;
 	            }
 	            let clusterResult;
 	            if (!tileCache[key]) {

@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.3
+ * maptalks.tileclusterlayer v0.0.4
   */
 import { VectorLayer, Marker, Util } from 'maptalks';
 
@@ -1144,7 +1144,7 @@ class TileClusterLayer extends VectorLayer {
             const key = [x, y, z].join('_').toString();
             cache[key] = 1;
             if (currentTileCache[key]) {
-                return;
+                continue;
             }
             let clusterResult;
             if (!tileCache[key]) {
