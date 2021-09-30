@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>million marker cluster</title>
+<style type="text/css">
+    html,
+    body {
+        margin: 0px;
+        height: 100%;
+        width: 100%
+    }
+
+    .container {
+        width: 100%;
+        height: 100%
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
+<script type="text/javascript" src="./../dist/maptalks.tileclusterlayer.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.13.0/d3.min.js"></script>
+
+<body>
+
+    <div id="map" class="container"></div>
+
+    <script>
+        var map = new maptalks.Map('map', {
+            center: [121.41102587594469, 31.210361851592126],
+            zoomControl: true,
+            zoom: 8,
+            minZoom: 3,
+            seamlessZoom: false,
+            // maxExtent: [-100, -55, 170, 55],
+            baseLayer: new maptalks.TileLayer('base', {
+                // debug: true,
+                repeatWorld: false,
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                subdomains: ['a', 'b', 'c', 'd'],
+                attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
+            })
+        });
+
+        function getClusterMarkerSymbol(count) {
+            const symbol = {
+                markerType: 'ellipse',
+                markerWidth: 65,
+                markerHeight: 65,
+                markerFill: '#fff',
+                markerLineWidth: 0,
+                markerFillOpacity: 1,
+                markerOpacity: 1,
+                textSize: 15,
+                textName: count,
+                textHaloFill: '#000',
+                textHaloRadius: 1.2,
+                textFill: '#fff'
+            };
+            if (count > 10000) {
+                symbol.markerFill = 'red';
+            } else if (count > 5000) {
+                symbol.markerFill = 'yellow';
+            };
+            return symbol;
+        }
+
+        const tileClusterLayer = new maptalks.TileClusterLayer('layer', {
+            maxClusterZoom: 18,
+            clusterDispersion: true,
+            dispersionCount: 500,
+            clusterMarkerSymbol: getClusterMarkerSymbol,
+            markerEvents: {
+                'click': function (e) {
+                    console.log(e);
+                }
+            }
+        });
+        tileClusterLayer.addTo(map);
+
+        var geojson = {
+            type: 'FeatureCollection',
+            features: []
+        }
+        d3.csv('https://gw.alipayobjects.com/os/rmsportal/BElVQFEFvpAKzddxFZxJ.txt', (error, response) => {
+            for (let i = 0, len = response.length; i < len; i++) {
+                let lng = response[i].lng, lat = response[i].lat;
+                lng = parseFloat(lng);
+                lat = parseFloat(lat);
+                geojson.features.push({
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [lng, lat]
+                    }
+                })
+            }
+            tileClusterLayer.setData(geojson);
+        });
+        // geojson.features.forEach(f => {
+        //     // f.symbol = {
+        //     //     markerType: 'ellipse',
+        //     //     markerWidth: 15,
+        //     //     markerHeight: 15,
+        //     //     markerFill: '#fff',
+        //     //     markerLineWidth: 1,
+        //     //     markerFillOpacity: 1,
+        //     //     markerOpacity: 1,
+        //     // }
+        // });
+
+    </script>
+</body>
+
+</html>
