@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.4
+ * maptalks.tileclusterlayer v0.0.5
   */
 import { VectorLayer, Marker, Util } from 'maptalks';
 
@@ -952,7 +952,8 @@ const options = {
     clusterMarkerSymbol: null,
     markerEvents: {},
     clusterDispersion: false,
-    dispersionCount: 100
+    dispersionCount: 100,
+    dispersionDuration: 300
 };
 
 function bboxToPolygon(bbox) {
@@ -1221,7 +1222,7 @@ class TileClusterLayer extends VectorLayer {
         markers.forEach(marker => {
             const properties = marker.getProperties() || {};
             if (properties.isCluster && properties.features && properties.features.length <= this.options.dispersionCount) {
-                marker.on('mouseover mouseout', this._clusterDispersion, this);
+                marker.on('click mouseover mouseout', this._clusterDispersion, this);
             }
             for (const eventName in this.options.markerEvents) {
                 marker.on(eventName, this.options.markerEvents[eventName]);
@@ -1231,27 +1232,37 @@ class TileClusterLayer extends VectorLayer {
     }
 
     _clusterDispersion(e) {
-        if (!this.options.clusterDispersion) {
+        if (!this.options.clusterDispersion || e.type === 'mouseover') {
             return this;
         }
         const clusterMarker = e.target;
+        const center = clusterMarker.getCenter();
         if (!clusterMarker._children) {
             const properties = clusterMarker.getProperties() || {};
             const features = properties.features || [];
             if (features.length) {
                 clusterMarker._children = features.map(f => {
-                    const marker = new Marker(f.geometry.coordinates, {
+                    const coordinates = f.geometry.coordinates;
+                    f.properties = f.properties || {};
+                    f.properties.offset = [coordinates[0] - center.x, coordinates[1] - center.y];
+                    const marker = new Marker(center, {
                         symbol: f.symbol,
                         properties: f.properties,
                         zIndex: Infinity
+                        // interactive: false
                     });
                     marker.setZIndex(Infinity);
                     marker._isDispersion = true;
                     return marker;
                 });
             }
+        } else if (clusterMarker._children) {
+            clusterMarker._children.forEach(marker => {
+                marker.setCoordinates(center);
+            });
         }
-        if (e.type === 'mouseover' && clusterMarker._children && clusterMarker._children.length) {
+        const hasChildren = clusterMarker._children && clusterMarker._children.length;
+        if (e.type === 'click' && hasChildren) {
             const children = clusterMarker._children.filter(p => {
                 return !p.getLayer();
             });
@@ -1259,8 +1270,21 @@ class TileClusterLayer extends VectorLayer {
             if (children.length) {
                 this.addGeometry(children);
             }
+            clusterMarker._children.filter(p => {
+                return p.getLayer();
+            }).forEach(marker => {
+                marker.animate({
+                    // animation translate distance
+                    translate: marker.getProperties().offset
+                }, {
+                    duration: this.options.dispersionDuration
+                    // easing: 'upAndDown'
+                    // let map focus on the marker
+                    // focus: true
+                });
+            });
         }
-        if (e.type === 'mouseout' && clusterMarker._children && clusterMarker._children.length) {
+        if (e.type === 'mouseout' && hasChildren) {
             this.removeGeometry(clusterMarker._children.filter(p => {
                 return p.getLayer();
             }));
