@@ -63,13 +63,15 @@
 
         function getClusterMarkerSymbol(count) {
             const symbol = {
-                markerType: 'ellipse',
-                markerWidth: 65,
-                markerHeight: 65,
-                markerFill: '#fff',
-                markerLineWidth: 0,
-                markerFillOpacity: 1,
-                markerOpacity: 1,
+                // markerType: 'ellipse',
+                // markerWidth: 65,
+                // markerHeight: 65,
+                // markerFill: '#fff',
+                // markerLineWidth: 0,
+                // markerFillOpacity: 1,
+                // markerOpacity: 1,
+                markerFile: './marker-case-clusterer1.png',
+                markerVerticalAlignment: 'middle',
                 textSize: 15,
                 textName: count,
                 textHaloFill: '#000',
@@ -77,9 +79,9 @@
                 textFill: '#fff'
             };
             if (count > 5000) {
-                symbol.markerFill = 'red';
+                symbol.markerFile = './marker-case-clusterer3.png';
             } else if (count > 1000) {
-                symbol.markerFill = 'yellow';
+                symbol.markerFile = './marker-case-clusterer2.png';
             };
             return symbol;
         }
