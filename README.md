@@ -30,6 +30,7 @@
 ```
 
 - [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/ "demo online")
+- [million markers cluster](https://deyihu.github.io/maptalks.tileclusterlayer/test/perf.html "million markers cluster")
 
 ```js
 function getClusterMarkerSymbol(count) {
@@ -82,5 +83,13 @@ const geojson={
             ]
 };
 tileClusterLayer.setData(geojson);
+
+//use in ESM
+
+import * as maptalks from 'maptalks';
+import {TileClusterLayer} from 'maptalks.tileclusterlayer';
+const tileClusterLayer = new TileClusterLayer("tileClusterLayer",{
+  ...
+});
 
 ```

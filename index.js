@@ -341,7 +341,17 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             });
         }
         if (e.type === 'mouseout' && hasChildren) {
+            clusterMarker._children.forEach(marker => {
+                if (marker._animPlayer && marker.getLayer()) {
+                    marker._animPlayer.finish();
+                }
+                marker.setCoordinates(center.copy());
+            });
             this.removeGeometry(clusterMarker._children.filter(p => {
+                if (p && p._animPlayer && p.getLayer()) {
+                    delete p._animPlayer;
+                    delete p._animationStarted;
+                }
                 return p.getLayer();
             }));
         }
