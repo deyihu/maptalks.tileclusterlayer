@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.5
+ * maptalks.tileclusterlayer v0.0.6
   */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('maptalks')) :
@@ -1322,7 +1322,17 @@
 	            });
 	        }
 	        if (e.type === 'mouseout' && hasChildren) {
+	            clusterMarker._children.forEach(marker => {
+	                if (marker._animPlayer && marker.getLayer()) {
+	                    marker._animPlayer.finish();
+	                }
+	                marker.setCoordinates(center.copy());
+	            });
 	            this.removeGeometry(clusterMarker._children.filter(p => {
+	                if (p && p._animPlayer && p.getLayer()) {
+	                    delete p._animPlayer;
+	                    delete p._animationStarted;
+	                }
 	                return p.getLayer();
 	            }));
 	        }
