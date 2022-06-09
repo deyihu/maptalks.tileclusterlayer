@@ -127,15 +127,15 @@
             });
         }
         geojson.features.forEach(f => {
-            // f.symbol = {
-            //     markerType: 'ellipse',
-            //     markerWidth: 15,
-            //     markerHeight: 15,
-            //     markerFill: '#fff',
-            //     markerLineWidth: 1,
-            //     markerFillOpacity: 1,
-            //     markerOpacity: 1,
-            // }
+            f.symbol = {
+                markerType: 'ellipse',
+                markerWidth: 15,
+                markerHeight: 15,
+                markerFill: '#fff',
+                markerLineWidth: 1,
+                markerFillOpacity: 1,
+                markerOpacity: 1,
+            }
         });
         tileClusterLayer.setData(geojson);
 
