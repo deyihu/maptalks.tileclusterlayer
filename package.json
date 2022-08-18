@@ -31,8 +31,7 @@
   "dependencies": {
     "@mapbox/sphericalmercator": "^1.2.0",
     "@mapbox/tile-cover": "^3.0.2",
-    "kdbush": "^3.0.0",
-    "maptalks": "^1.0.0-alpha.26"
+    "kdbush": "^3.0.0"
   },
   "devDependencies": {
     "cross-env": "^5.1.4",
