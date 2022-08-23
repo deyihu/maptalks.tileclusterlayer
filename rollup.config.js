@@ -11,7 +11,7 @@ const FILEMANE = pkg.name;
 const sourceMap = !product;
 
 const banner = `/*!\n * ${pkg.name} v${pkg.version}\n  */`;
-const external = ['maptalks'];
+const external = ['maptalks', 'deyihu-maptalks'];
 const plugins = [
     json(),
     nodeResolve(),
@@ -44,13 +44,13 @@ export default [
     },
     {
         input: getEntry(),
-        external: external,
+        external: external.concat(['@mapbox/sphericalmercator', 'kdbush', '@mapbox/tile-cover']),
         plugins: plugins,
         output: {
             'sourcemap': false,
             'format': 'es',
             // banner,
-            'file': `dist/${FILEMANE}.es.js`,
+            'file': `dist/${FILEMANE}.mjs`,
             'extend': true,
             'banner': banner,
             'globals': {
