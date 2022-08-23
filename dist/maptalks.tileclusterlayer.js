@@ -1,5 +1,5 @@
 /*!
- * maptalks.tileclusterlayer v0.0.6
+ * maptalks.tileclusterlayer v0.0.8
   */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('maptalks')) :
