@@ -1,10 +1,10 @@
 {
-  "name": "maptalks.tileclusterlayer",
+  "name": "deyihu-maptalks.tileclusterlayer",
   "version": "0.0.8",
   "description": "marker cluster by tile",
-  "module": "dist/maptalks.tileclusterlayer.mjs",
-  "main": "dist/maptalks.tileclusterlayer.js",
-  "jsnext:main": "dist/maptalks.tileclusterlayer.mjs",
+  "module": "dist/deyihu-maptalks.tileclusterlayer.mjs",
+  "main": "dist/deyihu-maptalks.tileclusterlayer.js",
+  "jsnext:main": "dist/deyihu-maptalks.tileclusterlayer.mjs",
   "scripts": {
     "lint": "eslint ./*.js",
     "build": "npm run lint && cross-env NODE_ENV=dev  rollup -c",

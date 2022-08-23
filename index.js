@@ -1,4 +1,4 @@
-import * as maptalks from 'maptalks';
+import * as maptalks from 'deyihu-maptalks';
 import SphericalMercator from '@mapbox/sphericalmercator';
 import KDBush from 'kdbush';
 import TileCover from '@mapbox/tile-cover';
