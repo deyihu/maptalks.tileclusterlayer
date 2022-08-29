@@ -33,7 +33,7 @@
 - [million markers cluster](https://deyihu.github.io/maptalks.tileclusterlayer/test/perf.html "million markers cluster")
 
 ```js
-function getClusterMarkerSymbol(count) {
+function getClusterMarkerSymbol(count,features) {
   const symbol = {
     markerType: "ellipse",
     markerWidth: 65,
