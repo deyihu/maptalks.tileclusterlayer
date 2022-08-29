@@ -361,7 +361,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         const clusterMarkerSymbol = this.options.clusterMarkerSymbol;
         let symbol;
         if (clusterMarkerSymbol && maptalks.Util.isFunction(clusterMarkerSymbol)) {
-            symbol = clusterMarkerSymbol(count);
+            symbol = clusterMarkerSymbol(count, features);
         }
         if (!symbol) {
             symbol = getDefaultClusterMarkerSymbol(count);
