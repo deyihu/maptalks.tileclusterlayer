@@ -13,14 +13,16 @@
 
     .container {
         width: 100%;
-        height: 100%
+        height: 100%;
+        background-color: black;
     }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css">
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
-<script type="text/javascript" src="./../dist/maptalks.tileclusterlayer.js"></script>
+<script type="text/javascript" src="https://unpkg.com/maptalks.tileclusterlayer@0.0.9/dist/maptalks.tileclusterlayer.js"></script>
 <script type="text/javascript" src="https://maptalks.org/maptalks.markercluster/demo/realworld.50000.1.js"></script>
 <script type="text/javascript" src="https://maptalks.org/maptalks.markercluster/demo/realworld.50000.2.js"></script>
+<script type="text/javascript" src="https://unpkg.com/turf@7.0.0-alpha.1/dist/turf.js"></script>
 
 <body>
 
@@ -60,15 +62,24 @@
             map.setBaseLayer(tdt);
         }
 
+        const layer = new maptalks.VectorLayer('templayer').addTo(map);
+
+        map.on('viewchange', () => {
+            layer.clear();
+            currentClusterMarker = null;
+        })
+
         function getClusterMarkerSymbol(count) {
             const symbol = {
-                markerType: 'ellipse',
-                markerWidth: 65,
-                markerHeight: 65,
-                markerFill: '#fff',
-                markerLineWidth: 0,
-                markerFillOpacity: 1,
-                markerOpacity: 1,
+                // markerType: 'ellipse',
+                // markerWidth: 65,
+                // markerHeight: 65,
+                // markerFill: '#fff',
+                // markerLineWidth: 0,
+                // markerFillOpacity: 1,
+                // markerOpacity: 1,
+                markerFile: './marker-case-clusterer1.png',
+                markerVerticalAlignment: 'middle',
                 textSize: 15,
                 textName: count,
                 textHaloFill: '#000',
@@ -76,9 +87,9 @@
                 textFill: '#fff'
             };
             if (count > 5000) {
-                symbol.markerFill = 'red';
+                symbol.markerFile = './marker-case-clusterer3.png';
             } else if (count > 1000) {
-                symbol.markerFill = 'yellow';
+                symbol.markerFile = './marker-case-clusterer2.png';
             };
             return symbol;
         }
@@ -90,12 +101,60 @@
             dispersionDuration: 300,
             clusterMarkerSymbol: getClusterMarkerSymbol,
             markerEvents: {
-                'click': function (e) {
-                    console.log(e);
-                }
+                'click': mouseClick,
+                'mouseover': mouseOver,
+                'mouseout': mouseOut
             }
         });
         tileClusterLayer.addTo(map);
+
+        function isClusterMarker(e) {
+            return (e.target.getProperties() || {}).isCluster;
+        }
+
+        function mouseClick(e) {
+            if (!isClusterMarker(e)) {
+                return;
+            }
+            // map.setCenter(e.target.getCenter());
+            // map.zoomIn();
+        }
+
+        let currentClusterMarker;
+        function mouseOver(e) {
+            if (!isClusterMarker(e)) {
+                return;
+            }
+            if (currentClusterMarker === e.target) {
+                return;
+            }
+            const features = e.target.getProperties().features || [];
+            if (features.length > e.target.getLayer().options.dispersionCount) {
+                return;
+            }
+            const points = features.map(f => {
+                return f;
+            });
+            const result = turf.concave(turf.featureCollection(points));
+            if (!result) {
+                return;
+            }
+            layer.clear();
+            const polygons = maptalks.GeoJSON.toGeometry(result);
+            polygons.forEach(p => {
+                p.setSymbol({
+                    lineColor: 'yellow',
+                    lineWidth: 1.5
+                })
+            })
+            layer.addGeometry(polygons);
+            currentClusterMarker = e.target;
+        }
+
+        function mouseOut(e) {
+            layer.clear();
+            currentClusterMarker = null;
+        }
 
         var geojson = {
             type: 'FeatureCollection',
@@ -124,15 +183,15 @@
             });
         }
         geojson.features.forEach(f => {
-            // f.symbol = {
-            //     markerType: 'ellipse',
-            //     markerWidth: 15,
-            //     markerHeight: 15,
-            //     markerFill: '#fff',
-            //     markerLineWidth: 1,
-            //     markerFillOpacity: 1,
-            //     markerOpacity: 1,
-            // }
+            f.symbol = {
+                markerType: 'ellipse',
+                markerWidth: 15,
+                markerHeight: 15,
+                markerFill: '#fff',
+                markerLineWidth: 1,
+                markerFillOpacity: 1,
+                markerOpacity: 1,
+            }
         });
         tileClusterLayer.setData(geojson);
 
