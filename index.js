@@ -5,6 +5,7 @@ import TileCover from '@mapbox/tile-cover';
 
 const options = {
     maxClusterZoom: 18,
+    minClusterCount: 5,
     clusterMarkerSymbol: null,
     markerEvents: {},
     clusterDispersion: false,
@@ -249,13 +250,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             if (ids.length) {
                 const { x, y, points, features } = this._getClusterResult(globalPoints, ids);
                 tileCache[key].coordinates = [x, y];
-                if (ids.length === 1) {
-                    const feature = globalFeatures[ids[0]];
-                    tileCache[key].markers = [new maptalks.Marker(tileCache[key].coordinates, {
-                        symbol: feature.symbol,
-                        properties: feature.properties || {}
-                    })];
-                } else if (zoom > maxZoom) {
+                if (zoom > maxZoom || ids.length < this.options.minClusterCount) {
                     tileCache[key].markers = ids.map(id => {
                         const feature = globalFeatures[id];
                         return new maptalks.Marker(globalPoints[id], {

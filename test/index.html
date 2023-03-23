@@ -19,7 +19,7 @@
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css">
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
-<script type="text/javascript" src="https://unpkg.com/maptalks.tileclusterlayer@0.0.9/dist/maptalks.tileclusterlayer.js"></script>
+<script type="text/javascript" src="https://unpkg.com/maptalks.tileclusterlayer/dist/maptalks.tileclusterlayer.js"></script>
 <script type="text/javascript" src="https://maptalks.org/maptalks.markercluster/demo/realworld.50000.1.js"></script>
 <script type="text/javascript" src="https://maptalks.org/maptalks.markercluster/demo/realworld.50000.2.js"></script>
 <script type="text/javascript" src="https://unpkg.com/turf@7.0.0-alpha.1/dist/turf.js"></script>
@@ -96,6 +96,7 @@
 
         const tileClusterLayer = new maptalks.TileClusterLayer('layer', {
             maxClusterZoom: 18,
+            minClusterCount: 10,
             clusterDispersion: true,
             dispersionCount: 500,
             dispersionDuration: 300,
