@@ -194,7 +194,8 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         }
         const currentTileCache = this._currentTileCache, tileCache = this._tileCache, merc = this.merc, kdbush = this.kdbush;
         const cache = {};
-        const zoom = Math.floor(this.getMap().getZoom());
+        const mapZoom = this.getMap().getZoom();
+        const zoom = Math.floor(mapZoom);
         const addMarkers = [], removeMarkers = [];
         for (let i = 0, len = tiles.length; i < len; i++) {
             const tile = tiles[i];
@@ -250,7 +251,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             if (ids.length) {
                 const { x, y, points, features } = this._getClusterResult(globalPoints, ids);
                 tileCache[key].coordinates = [x, y];
-                if (zoom > maxZoom || ids.length < this.options.minClusterCount) {
+                if (zoom > (maxZoom - 1) || ids.length < this.options.minClusterCount) {
                     tileCache[key].markers = ids.map(id => {
                         const feature = globalFeatures[id];
                         return new maptalks.Marker(globalPoints[id], {
