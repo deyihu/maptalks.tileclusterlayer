@@ -68,6 +68,10 @@ const tileClusterLayer = new maptalks.TileClusterLayer("tileClusterLayer", {
 });
 tileClusterLayer.addTo(map);
 
+tileClusterLayer.on('clusterstart clusterend', e => {
+    console.log(e);
+});
+
 const geojson = {
     type: 'FeatureCollection',
     features: [

@@ -5,7 +5,7 @@ import TileCover from '@mapbox/tile-cover';
 
 const options = {
     maxClusterZoom: 18,
-    minClusterCount: 5,
+    minClusterCount: 2,
     clusterMarkerSymbol: null,
     markerEvents: {},
     clusterDispersion: false,
@@ -196,6 +196,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         if (this._isEmpty()) {
             return this;
         }
+        this.fire('clusterstart', { geometries: this.getGeometries() });
         const currentTileCache = this._currentTileCache,
             merc = this.merc, kdbush = this.kdbush;
         const cache = {};
@@ -254,6 +255,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         if (removeMarkers.length) {
             this.removeGeometry(removeMarkers);
         }
+        this.fire('clusterend', { geometries: this.getGeometries() });
     }
 
     _getGlobalCache(isCluster) {
