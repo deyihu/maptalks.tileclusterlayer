@@ -7,6 +7,7 @@
   "jsnext:main": "dist/maptalks.tileclusterlayer.mjs",
   "scripts": {
     "lint": "eslint ./*.js",
+    "dev": "npm run lint && cross-env NODE_ENV=dev  rollup -c -w",
     "build": "npm run lint && cross-env NODE_ENV=dev  rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

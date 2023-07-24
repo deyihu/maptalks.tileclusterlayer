@@ -91,8 +91,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
 
     constructor(id, options) {
         super(id, options);
-        this._tileCache = {};
-        this._currentTileCache = {};
+        this._initTileCache();
         this.merc = new SphericalMercator({
             size: 256
             // antimeridian: true
@@ -110,10 +109,15 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         return this.globalPoints.length === 0;
     }
 
+    _initTileCache() {
+        this._tileCache = {};
+        this._clusterTileCache = {};
+        this._currentTileCache = {};
+    }
+
     _init() {
         this.clear();
-        this._tileCache = {};
-        this._currentTileCache = {};
+        this._initTileCache();
         this._viewChange();
         return this;
     }
@@ -192,26 +196,40 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         if (this._isEmpty()) {
             return this;
         }
-        const currentTileCache = this._currentTileCache, tileCache = this._tileCache, merc = this.merc, kdbush = this.kdbush;
+        const currentTileCache = this._currentTileCache,
+            merc = this.merc, kdbush = this.kdbush;
         const cache = {};
         const mapZoom = this.getMap().getZoom();
-        const zoom = Math.floor(mapZoom);
+        const isCluster = mapZoom <= this.options.maxClusterZoom;
+        // const zoom = Math.ceil(mapZoom);
         const addMarkers = [], removeMarkers = [];
+        const globalCache = this._getGlobalCache(isCluster);
         for (let i = 0, len = tiles.length; i < len; i++) {
             const tile = tiles[i];
             const [x, y, z] = tile;
             const key = [x, y, z].join('_').toString();
             cache[key] = 1;
-            if (currentTileCache[key]) {
-                continue;
+            let tileCache = currentTileCache[key];
+            if (tileCache) {
+                if (tileCache.clustering === isCluster) {
+                    continue;
+                } else {
+                    if (tileCache.markers.length) {
+                        tileCache.markers.forEach(marker => {
+                            removeMarkers.push(marker);
+                        });
+                    }
+                    delete currentTileCache[key];
+                }
             }
             let clusterResult;
-            if (!tileCache[key]) {
+            tileCache = this._getTileCache(key, isCluster);
+            if (!tileCache) {
                 const bbox = merc.bbox(x, y, z);
                 const ids = kdbush.range(bbox[0], bbox[1], bbox[2], bbox[3]);
-                clusterResult = this._tileCluster(key, ids, zoom);
+                clusterResult = this._tileCluster(key, ids, mapZoom, isCluster);
             } else {
-                clusterResult = tileCache[key];
+                clusterResult = globalCache[key];
             }
             if (!currentTileCache[key] && clusterResult.markers.length) {
                 clusterResult.markers.forEach(marker => {
@@ -238,36 +256,60 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         }
     }
 
-    _tileCluster(key, ids, zoom) {
-        const tileCache = this._tileCache, globalPoints = this.globalPoints, globalFeatures = this.globalFeatures,
+    _getGlobalCache(isCluster) {
+        const tileCache = this._tileCache, clusterTileCache = this._clusterTileCache;
+        if (isCluster) {
+            return clusterTileCache;
+        }
+        return tileCache;
+    }
+
+    _getTileCache(key, isCluster) {
+        const globalCache = this._getGlobalCache(isCluster);
+        const tileCache = globalCache[key];
+        if (tileCache) {
+            if (globalCache.clustering === isCluster) {
+                return tileCache;
+            } else {
+                delete globalCache[key];
+            }
+        }
+    }
+
+    _tileCluster(key, ids, zoom, isCluster) {
+        const globalPoints = this.globalPoints, globalFeatures = this.globalFeatures,
             maxZoom = this.options.maxClusterZoom;
-        if (!tileCache[key]) {
-            tileCache[key] = {
+        const globalCache = this._getGlobalCache(isCluster);
+        const tileCache = this._getTileCache(key, isCluster);
+        if (!tileCache) {
+            globalCache[key] = {
                 points: [],
                 features: [],
                 coordinate: null,
-                markers: []
+                markers: [],
+                clustering: true
             };
             if (ids.length) {
                 const { x, y, points, features } = this._getClusterResult(globalPoints, ids);
-                tileCache[key].coordinates = [x, y];
-                if (zoom > (maxZoom - 1) || ids.length < this.options.minClusterCount) {
-                    tileCache[key].markers = ids.map(id => {
+                globalCache[key].coordinates = [x, y];
+                if (zoom > maxZoom || ids.length < this.options.minClusterCount) {
+                    globalCache[key].markers = ids.map(id => {
                         const feature = globalFeatures[id];
                         return new maptalks.Marker(globalPoints[id], {
                             symbol: feature.symbol,
                             properties: feature.properties || {}
                         });
                     });
+                    globalCache[key].clustering = false;
                 } else {
-                    tileCache[key].markers = [this._getClusterMarker(tileCache[key].coordinates, ids.length, features)];
+                    globalCache[key].markers = [this._getClusterMarker(globalCache[key].coordinates, ids.length, features)];
                 }
-                this._bindMarkersEvents(tileCache[key].markers);
-                tileCache[key].points = points;
-                tileCache[key].features = features;
+                this._bindMarkersEvents(globalCache[key].markers);
+                globalCache[key].points = points;
+                globalCache[key].features = features;
             }
         }
-        return tileCache[key];
+        return globalCache[key];
     }
 
     _bindMarkersEvents(markers = []) {
