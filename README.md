@@ -20,8 +20,9 @@
   yarn add maptalks.tileclusterlayer
 ```
 
-* [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/ "demo online")
-* [million markers cluster](https://deyihu.github.io/maptalks.tileclusterlayer/test/perf.html "million markers cluster")
+* [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/index.html)
+* [tileSize 512](https://deyihu.github.io/maptalks.tileclusterlayer/test/beijing-tilesize-512.html)
+* [million markers cluster](https://deyihu.github.io/maptalks.tileclusterlayer/test/perf.html)
 
 ```js
 function getClusterMarkerSymbol(count, features) {
@@ -48,6 +49,7 @@ function getClusterMarkerSymbol(count, features) {
 }
 
 const tileClusterLayer = new maptalks.TileClusterLayer("tileClusterLayer", {
+    tileSize: 256, // 256/512
     maxClusterZoom: 18,
     minClusterCount: 5,
     //when cluster marker click will show children markers
