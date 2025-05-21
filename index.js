@@ -1,7 +1,8 @@
 import * as maptalks from 'maptalks';
-import SphericalMercator from '@mapbox/sphericalmercator';
+// import SphericalMercator from '@mapbox/sphericalmercator';
 import KDBush from 'kdbush';
-import TileCover from '@mapbox/tile-cover';
+import TileCover from 'tile-cover-deyihu';
+import { tileToBBOX } from 'tile-cover-deyihu/tilebelt';
 
 const options = {
     maxClusterZoom: 18,
@@ -90,12 +91,13 @@ function fixExtent(extent) {
 export class TileClusterLayer extends maptalks.VectorLayer {
 
     constructor(id, options) {
+        options.tileSize = options.tileSize || 256;
         super(id, options);
         this._initTileCache();
-        this.merc = new SphericalMercator({
-            size: 256
-            // antimeridian: true
-        });
+        // this.merc = new SphericalMercator({
+        //     size: this.options.tileSize
+        //     // antimeridian: true
+        // });
         this.globalPoints = [];
         this.globalFeatures = [];
         this.kdbush = null;
@@ -187,7 +189,8 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         const zoom = getClosestZoom(map.pixelToDistance(1, 0));
         const tiles = TileCover.tiles(polygon, {
             min_zoom: zoom,
-            max_zoom: zoom
+            max_zoom: zoom,
+            tileSize: this.options.tileSize
         });
         this._cluster(tiles);
     }
@@ -197,8 +200,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             return this;
         }
         this.fire('clusterstart', { geometries: this.getGeometries() });
-        const currentTileCache = this._currentTileCache,
-            merc = this.merc, kdbush = this.kdbush;
+        const currentTileCache = this._currentTileCache, kdbush = this.kdbush;
         const cache = {};
         const mapZoom = this.getMap().getZoom();
         const isCluster = mapZoom <= this.options.maxClusterZoom;
@@ -226,7 +228,9 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             let clusterResult;
             tileCache = this._getTileCache(key, isCluster);
             if (!tileCache) {
-                const bbox = merc.bbox(x, y, z);
+                // const bbox = merc.bbox(x, y, z);
+                const bbox = tileToBBOX(tile, this.options.tileSize);
+                // console.log('bbox', bbox);
                 const ids = kdbush.range(bbox[0], bbox[1], bbox[2], bbox[3]);
                 clusterResult = this._tileCluster(key, ids, mapZoom, isCluster);
             } else {
