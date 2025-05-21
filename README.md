@@ -7,9 +7,9 @@
 * by cdn
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css" />
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks.tileclusterlayer@latest/dist/maptalks.tileclusterlayer.min.js"></script>
+<link rel="stylesheet" href="https://www.unpkg.com/maptalks/dist/maptalks.css" />
+<script type="text/javascript" src="https://www.unpkg.com/maptalks/dist/maptalks.min.js"></script>
+<script type="text/javascript" src="https://www.unpkg.com/maptalks.tileclusterlayer@latest/dist/maptalks.tileclusterlayer.min.js"></script>
 ```
 
 * by npm
