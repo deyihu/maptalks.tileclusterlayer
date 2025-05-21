@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map - Display a map</title>
+<style type="text/css">
+    html,
+    body {
+        margin: 0px;
+        height: 100%;
+        width: 100%
+    }
+
+    .container {
+        width: 100%;
+        height: 100%;
+        background-color: black;
+    }
+
+    .panel {
+        position: absolute;
+        z-index: 1;
+        background-color: white;
+        padding: 10px;
+        border: 1px solid gray;
+        right: 10px;
+    }
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.css">
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/maptalks/dist/maptalks.min.js"></script>
+<script type="text/javascript"
+    src="https://unpkg.com/maptalks.tileclusterlayer@latest/dist/maptalks.tileclusterlayer.js"></script>
+<script type="text/javascript" src="https://a.amap.com/jsapi_demos/static/demo-center/data/mock_position.js"></script>
+
+<body>
+    <div class="panel">
+        <input type="checkbox" id="seamlessZoom" /><label>seamlessZoom</label>
+    </div>
+    <div id="map" class="container"></div>
+
+    <script>
+        var map = new maptalks.Map('map', {
+            center: [116.441504, 40.031386],
+            zoomControl: true,
+            zoom: 13,
+            minZoom: 1,
+            seamlessZoom: false,
+            baseLayer: new maptalks.TileLayer('base', {
+                // debug: true,
+                repeatWorld: false,
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+                subdomains: ['a', 'b', 'c', 'd'],
+                attribution: '&copy; <a href="http://osm.org">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/">CARTO</a>'
+            })
+        });
+
+        document.querySelector('#seamlessZoom').addEventListener('change', e => {
+            map.options.seamlessZoom = e.target.checked;
+        })
+
+
+
+        const layer = new maptalks.VectorLayer('templayer').addTo(map);
+
+        map.on('viewchange', () => {
+            layer.clear();
+            currentClusterMarker = null;
+        })
+
+        function getClusterMarkerSymbol(count) {
+            const symbol = {
+                markerType: 'ellipse',
+                markerWidth: 40,
+                markerHeight: 40,
+                markerFill: 'green',
+                markerLineWidth: 0,
+                markerFillOpacity: 0.4,
+                markerOpacity: 1,
+                // markerFile: './marker-case-clusterer1.png',
+                // markerVerticalAlignment: 'middle',
+                textSize: 12,
+                textName: count,
+                textHaloFill: '#000',
+                textHaloRadius: 1.2,
+                textFill: '#fff'
+            };
+            if (count > 5000) {
+                // symbol.markerFile = './marker-case-clusterer3.png';
+                symbol.markerFill = 'red'
+            } else if (count > 1000) {
+                symbol.markerFill = '#F18334'
+            } else if (count > 500) {
+                symbol.markerFill = 'yellow'
+            }
+            return symbol;
+        }
+
+        const tileClusterLayer = new maptalks.TileClusterLayer('layer', {
+            tileSize: 512,
+            maxClusterZoom: 17,
+            minClusterCount: 2,
+            clusterDispersion: true,
+            dispersionCount: 500,
+            dispersionDuration: 300,
+            clusterMarkerSymbol: getClusterMarkerSymbol,
+            markerEvents: {
+                'click': mouseClick,
+                // 'mouseover': mouseOver,
+                // 'mouseout': mouseOut
+            }
+        });
+        tileClusterLayer.addTo(map);
+
+        function isClusterMarker(e) {
+            return (e.target.getProperties() || {}).isCluster;
+        }
+
+        function mouseClick(e) {
+            if (!isClusterMarker(e)) {
+                return;
+            }
+            // map.setCenter(e.target.getCenter());
+            // map.zoomIn();
+        }
+
+        var geojson = {
+            type: 'FeatureCollection',
+            features: []
+        }
+        // data from realworld.50000.1.js
+        for (var i = 0; i < Positions.length; i++) {
+            // var a = Positions[i];
+            geojson.features.push({
+                type: 'Feature',
+                geometry: {
+                    type: 'Point',
+                    coordinates: Positions[i].map(p => {
+                        return parseFloat(p);
+                    })
+                }
+            });
+        }
+        geojson.features.forEach(f => {
+            f.symbol = {
+                markerType: 'ellipse',
+                markerWidth: 15,
+                markerHeight: 15,
+                markerFill: '#fff',
+                markerLineWidth: 1,
+                markerFillOpacity: 1,
+                markerOpacity: 1,
+            }
+        });
+        tileClusterLayer.setData(geojson);
+
+
+    </script>
+</body>
+
+</html>
