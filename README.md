@@ -2,6 +2,8 @@
 
 **markers cluster by tile**
 
+![](./tile-cluster.png)
+
 ## how to use?
 
 * by cdn
@@ -15,9 +17,10 @@
 * by npm
 
 ```sh
+  npm i maptalks
+# npm i maptalks-gl
   npm i maptalks.tileclusterlayer
-#   or
-  yarn add maptalks.tileclusterlayer
+
 ```
 
 * [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/index.html)
