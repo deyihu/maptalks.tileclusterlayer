@@ -103,6 +103,18 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         this.kdbush = null;
     }
 
+    onConfig(conf) {
+        if (conf) {
+            const keys = Object.keys(conf);
+            for (let i = 0, len = keys.length; i < len; i++) {
+                if (keys[i] in options) {
+                    this._init();
+                    break;
+                }
+            }
+        }
+    }
+
     _isGeoJSON(geojson) {
         return (geojson && geojson.features && Array.isArray(geojson.features));
     }
