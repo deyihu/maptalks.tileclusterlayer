@@ -95,22 +95,29 @@
         });
         tileClusterLayer.addTo(map);
 
+
         function bindInfoWindow(e) {
             const geometries = e.geometries || [];
             geometries.forEach(point => {
-                if (!isClusterMarker(point)) {
-                    return;
-                }
                 // console.log(point);
                 //has bind infowindow
                 if (point.getInfoWindow()) {
                     return;
                 }
-                const features = point.getProperties().features;
-                point.setInfoWindow({
-                    title:'hello maptalks',
-                    content: `<div><h2>我是聚合点</h2><div>数据量是：${features.length}</div>`
-                })
+
+                const isCluster = isClusterMarker(point);
+                if (isCluster) {
+                    const features = point.getProperties().features;
+                    point.setInfoWindow({
+                        title: 'hello maptalks',
+                        content: `<div>我是聚合点，数据量是：${features.length}</div>`
+                    })
+                } else {
+                    point.setInfoWindow({
+                        title: 'hello maptalks',
+                        content: `<div>我是独立点，孤孤单单...</div>`
+                    })
+                }
             });
 
 

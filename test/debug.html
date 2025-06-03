@@ -41,16 +41,16 @@
 
     <script>
 
-        const tileSize = 512;
+        const tileSize = 256;
         var map = new maptalks.Map('map', {
             center: [175.2747610749193, -37.78986081060927],
             zoomControl: true,
-            zoom: 13,
+            zoom: 18,
             minZoom: 1,
             seamlessZoom: false,
             baseLayer: new maptalks.TileLayer('base', {
                 tileSize,
-                // debug: true,
+                debug: true,
                 repeatWorld: false,
                 urlTemplate: './tile.png',
                 subdomains: ['a', 'b', 'c', 'd'],
@@ -128,6 +128,39 @@
         });
         tileClusterLayer.addTo(map);
 
+
+        function bindInfoWindow(e) {
+            const geometries = e.geometries || [];
+            geometries.forEach(point => {
+                // console.log(point);
+                //has bind infowindow
+                if (point.getInfoWindow()) {
+                    return;
+                }
+
+                const isCluster = isClusterMarker(point);
+                if (isCluster) {
+                    const features = point.getProperties().features;
+                    point.setInfoWindow({
+                        title: 'hello maptalks',
+                        content: `<div>我是聚合点，数据量是：${features.length}</div>`
+                    })
+                } else {
+                    point.setInfoWindow({
+                        title: 'hello maptalks',
+                        content: `<div>我是独立点，孤孤单单...</div>`
+                    })
+                }
+            });
+
+
+        }
+
+        tileClusterLayer.on('clusterend', bindInfoWindow);
+
+        function isClusterMarker(e) {
+            return ((e.target || e).getProperties() || {}).isCluster;
+        }
 
         function mouseClick(e) {
             console.log(e);
