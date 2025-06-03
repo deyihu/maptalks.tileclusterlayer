@@ -2,7 +2,8 @@ import * as maptalks from 'maptalks';
 // import SphericalMercator from '@mapbox/sphericalmercator';
 import KDBush from 'kdbush';
 import TileCover from 'tile-cover-deyihu';
-import { tileToBBOX } from 'tile-cover-deyihu/tilebelt';
+import tilebelt from 'tile-cover-deyihu/tilebelt';
+const tileToBBOX = tilebelt.tileToBBOX;
 
 const options = {
     maxClusterZoom: 18,
@@ -124,8 +125,14 @@ export class TileClusterLayer extends maptalks.VectorLayer {
     }
 
     _initTileCache() {
-        this._tileCache = {};
-        this._clusterTileCache = {};
+        if (!this._globalCache) {
+            this._globalCache = new Map();
+        }
+        if (!this._markerCache) {
+            this._markerCache = new Map();
+        }
+        this._globalCache.clear();
+        this._markerCache.clear();
         this._currentTileCache = {};
     }
 
@@ -218,27 +225,26 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         const isCluster = mapZoom <= this.options.maxClusterZoom;
         // const zoom = Math.ceil(mapZoom);
         const addMarkers = [], removeMarkers = [];
-        const globalCache = this._getGlobalCache(isCluster);
         for (let i = 0, len = tiles.length; i < len; i++) {
             const tile = tiles[i];
-            const [x, y, z] = tile;
-            const key = [x, y, z].join('_').toString();
+            // const [x, y, z] = tile;
+            const key = tile.join('_').toString();
             cache[key] = 1;
-            let tileCache = currentTileCache[key];
-            if (tileCache) {
-                if (tileCache.clustering === isCluster) {
-                    continue;
-                } else {
-                    if (tileCache.markers.length) {
-                        tileCache.markers.forEach(marker => {
-                            removeMarkers.push(marker);
-                        });
-                    }
-                    delete currentTileCache[key];
-                }
-            }
+            // let tileCache = currentTileCache[key];
+            // if (tileCache) {
+            //     // if (tileCache.clustering === isCluster) {
+            //     //     continue;
+            //     // } else {
+            //     //     if (tileCache.markers.length) {
+            //     //         tileCache.markers.forEach(marker => {
+            //     //             removeMarkers.push(marker);
+            //     //         });
+            //     //     }
+            //     //     delete currentTileCache[key];
+            //     // }
+            // }
             let clusterResult;
-            tileCache = this._getTileCache(key, isCluster);
+            const tileCache = this._currentTileCache[key];
             if (!tileCache) {
                 // const bbox = merc.bbox(x, y, z);
                 const bbox = tileToBBOX(tile, this.options.tileSize);
@@ -246,7 +252,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
                 const ids = kdbush.range(bbox[0], bbox[1], bbox[2], bbox[3]);
                 clusterResult = this._tileCluster(key, ids, mapZoom, isCluster);
             } else {
-                clusterResult = globalCache[key];
+                clusterResult = tileCache;
             }
             if (!currentTileCache[key] && clusterResult.markers.length) {
                 clusterResult.markers.forEach(marker => {
@@ -259,7 +265,9 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             if (!cache[key]) {
                 if (currentTileCache[key].markers.length) {
                     currentTileCache[key].markers.forEach(marker => {
-                        removeMarkers.push(marker);
+                        if (addMarkers.indexOf(marker) === -1) {
+                            removeMarkers.push(marker);
+                        }
                     });
                 }
                 delete currentTileCache[key];
@@ -274,71 +282,65 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         this.fire('clusterend', { geometries: this.getGeometries() });
     }
 
-    _getGlobalCache(isCluster) {
-        const tileCache = this._tileCache, clusterTileCache = this._clusterTileCache;
-        if (isCluster) {
-            return clusterTileCache;
-        }
-        return tileCache;
-    }
-
-    _getTileCache(key, isCluster) {
-        const globalCache = this._getGlobalCache(isCluster);
-        const tileCache = globalCache[key];
-        if (tileCache) {
-            if (globalCache.clustering === isCluster) {
-                return tileCache;
-            } else {
-                delete globalCache[key];
-            }
-        }
-    }
-
     _tileCluster(key, ids, zoom, isCluster) {
         const globalPoints = this.globalPoints, globalFeatures = this.globalFeatures,
             maxZoom = this.options.maxClusterZoom;
-        const globalCache = this._getGlobalCache(isCluster);
-        const tileCache = this._getTileCache(key, isCluster);
+        const globalCache = this._globalCache;
+        let tileCache = globalCache.get(key);
         if (!tileCache) {
-            globalCache[key] = {
+            tileCache = {
                 points: [],
                 features: [],
                 coordinate: null,
                 markers: [],
-                clustering: true
+                clustering: true,
+                zoom
             };
+            globalCache.set(key, tileCache);
             if (ids.length) {
                 const { x, y, points, features } = this._getClusterResult(globalPoints, ids);
-                globalCache[key].coordinates = [x, y];
+                tileCache.coordinates = [x, y];
                 if (zoom > maxZoom || ids.length < this.options.minClusterCount) {
-                    globalCache[key].markers = ids.map(id => {
+                    tileCache.markers = ids.map(id => {
                         const feature = globalFeatures[id];
-                        return new maptalks.Marker(globalPoints[id], {
+                        const __id = feature.__id;
+                        const marker = this._markerCache.get(__id) || new maptalks.Marker(globalPoints[id], {
                             symbol: feature.symbol,
                             properties: feature.properties || {}
                         });
+                        if (!this._markerCache.has(__id)) {
+                            this._markerCache.set(__id, marker);
+                        }
+                        return marker;
+
                     });
-                    globalCache[key].clustering = false;
+                    tileCache.clustering = false;
                 } else {
-                    globalCache[key].markers = [this._getClusterMarker(globalCache[key].coordinates, ids.length, features)];
+                    tileCache.markers = [this._getClusterMarker(tileCache.coordinates, ids.length, features)];
                 }
-                this._bindMarkersEvents(globalCache[key].markers);
-                globalCache[key].points = points;
-                globalCache[key].features = features;
+                this._bindMarkersEvents(tileCache.markers);
+                tileCache.points = points;
+                tileCache.features = features;
             }
         }
-        return globalCache[key];
+        return tileCache;
     }
 
     _bindMarkersEvents(markers = []) {
         markers.forEach(marker => {
+            if (marker.__clusterEventBind) {
+                return;
+            }
             const properties = marker.getProperties() || {};
             if (properties.isCluster && properties.features && properties.features.length <= this.options.dispersionCount) {
+                // marker.off('click mouseover mouseout', this._clusterDispersion, this);
                 marker.on('click mouseover mouseout', this._clusterDispersion, this);
             }
             for (const eventName in this.options.markerEvents) {
+                // marker.off(eventName, this.options.markerEvents[eventName]);
                 marker.on(eventName, this.options.markerEvents[eventName]);
             }
+            marker.__clusterEventBind = true;
         });
         return this;
     }
@@ -437,6 +439,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             if (geojson.features[i].geometry.type !== 'Point') {
                 continue;
             }
+            geojson.features[i].__id = maptalks.Util.GUID();
             points.push(geojson.features[i].geometry.coordinates);
             features.push(geojson.features[i]);
         }
