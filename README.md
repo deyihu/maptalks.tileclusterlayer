@@ -25,6 +25,7 @@
 
 * [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/index.html)
 * [tileSize 512](https://deyihu.github.io/maptalks.tileclusterlayer/test/beijing-tilesize-512.html)
+* [set infowindow](https://deyihu.github.io/maptalks.tileclusterlayer/test/setinfowindow.html)
 * [million markers cluster](https://deyihu.github.io/maptalks.tileclusterlayer/test/perf.html)
 
 ```js
