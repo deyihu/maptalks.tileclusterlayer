@@ -189,6 +189,16 @@ export class TileClusterLayer extends maptalks.VectorLayer {
         if (dispersionMarkers) {
             this.removeGeometry(dispersionMarkers);
         }
+        const clusterMarkers = [];
+        dispersionMarkers.forEach(marker => {
+            const clusterParent = marker._clusterParent;
+            if (clusterParent && clusterMarkers.indexOf(clusterParent) === -1) {
+                clusterMarkers.push(clusterMarkers);
+            }
+        });
+        clusterMarkers.forEach(clusterMarker => {
+            this.fire('dispersionend', { marker: clusterMarker, children: clusterMarker._children });
+        });
         const extent = map.getExtent();
         if (extent.xmin > extent.xmax) {
             extent.xmax = XMAX;
@@ -367,6 +377,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
                     });
                     marker.setZIndex(Infinity);
                     marker._isDispersion = true;
+                    marker._clusterParent = clusterMarker;
                     return marker;
                 });
             }
@@ -384,6 +395,7 @@ export class TileClusterLayer extends maptalks.VectorLayer {
             if (children.length) {
                 this.addGeometry(children);
             }
+            this.fire('dispersionstart', { marker: clusterMarker, children: clusterMarker._children });
             clusterMarker._children.filter(p => {
                 return p.getLayer();
             }).forEach(marker => {
@@ -405,13 +417,18 @@ export class TileClusterLayer extends maptalks.VectorLayer {
                 }
                 marker.setCoordinates(center.copy());
             });
-            this.removeGeometry(clusterMarker._children.filter(p => {
+            const removeMarkers = clusterMarker._children.filter(p => {
                 if (p && p._animPlayer && p.getLayer()) {
                     delete p._animPlayer;
                     delete p._animationStarted;
                 }
                 return p.getLayer();
-            }));
+            });
+            if (removeMarkers.length) {
+                this.removeGeometry(removeMarkers);
+                this.fire('dispersionend', { marker: clusterMarker, children: clusterMarker._children });
+            }
+
         }
     }
 
