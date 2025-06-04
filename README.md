@@ -26,6 +26,7 @@
 * [demo online](https://deyihu.github.io/maptalks.tileclusterlayer/test/index.html)
 * [tileSize 512](https://deyihu.github.io/maptalks.tileclusterlayer/test/beijing-tilesize-512.html)
 * [set infowindow](https://deyihu.github.io/maptalks.tileclusterlayer/test/setinfowindow.html)
+* [dispersion-event](https://deyihu.github.io/maptalks.tileclusterlayer/test/dispersion-event.html)
 * [million markers cluster](https://deyihu.github.io/maptalks.tileclusterlayer/test/perf.html)
 
 ```js
@@ -74,7 +75,7 @@ const tileClusterLayer = new maptalks.TileClusterLayer("tileClusterLayer", {
 });
 tileClusterLayer.addTo(map);
 
-tileClusterLayer.on('clusterstart clusterend', e => {
+tileClusterLayer.on('clusterstart clusterend dispersionstart dispersionend', e => {
     console.log(e);
 });
 
