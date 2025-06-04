@@ -1,6 +1,6 @@
 {
   "name": "maptalks.tileclusterlayer",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "marker cluster by tile",
   "module": "dist/maptalks.tileclusterlayer.mjs",
   "main": "dist/maptalks.tileclusterlayer.js",
