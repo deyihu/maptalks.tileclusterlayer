@@ -4,7 +4,7 @@
   "description": "marker cluster by tile",
   "module": "dist/maptalks.tileclusterlayer.mjs",
   "main": "dist/maptalks.tileclusterlayer.js",
-  "jsnext:main": "dist/maptalks.tileclusterlayer.mjs",
+  "jsnext:main": "dist/maptalks.tileclusterlayer.es.js",
   "scripts": {
     "lint": "eslint ./*.js",
     "dev": "npm run lint && cross-env NODE_ENV=dev  rollup -c -w",

@@ -50,7 +50,7 @@ export default [
             'sourcemap': false,
             'format': 'es',
             // banner,
-            'file': `dist/${FILEMANE}.mjs`,
+            'file': `dist/${FILEMANE}.es.js`,
             'extend': true,
             'banner': banner,
             'globals': {
